@@ -2,38 +2,62 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { ArticleEntity } from './entities/article.entity';
 
 @Injectable()
 export class ArticlesService {
   constructor(private readonly prisma: PrismaService) {}
-  create(createArticleDto: CreateArticleDto) {
-    return this.prisma.article.create({ data: createArticleDto });
+  async create(createArticleDto: CreateArticleDto) {
+    return new ArticleEntity(
+      await this.prisma.article.create({ data: createArticleDto }),
+    );
+    // return this.prisma.article.create({ data: createArticleDto });
   }
 
-  findAll() {
-    return this.prisma.article.findMany({ where: { published: true } });
+  async findAll() {
+    const articles = await this.prisma.article.findMany({
+      where: { published: true },
+    });
+    return articles.map((article) => new ArticleEntity(article));
+    // return this.prisma.article.findMany({ where: { published: true } });
   }
 
-  findAllDrafts() {
-    return this.prisma.article.findMany({ where: { published: false } });
+  async findAllDrafts() {
+    const drafts = await this.prisma.article.findMany({
+      where: { published: false },
+    });
+    return drafts.map((draft) => new ArticleEntity(draft));
+    // return this.prisma.article.findMany({ where: { published: false } });
   }
 
   async findOne(id: number) {
-    const article = await this.prisma.article.findUnique({ where: { id } });
+    const article = await this.prisma.article.findUnique({
+      where: { id },
+      include: { author: true },
+    });
     if (!article) {
       throw new NotFoundException(`Article #${id} not found`);
     }
-    return article;
+    return new ArticleEntity(article);
+    // return article;
   }
 
-  update(id: number, updateArticleDto: UpdateArticleDto) {
-    return this.prisma.article.update({
+  async update(id: number, updateArticleDto: UpdateArticleDto) {
+    const article = await this.prisma.article.update({
       where: { id },
       data: updateArticleDto,
     });
+    return new ArticleEntity(article);
+    // return this.prisma.article.update({
+    //   where: { id },
+    //   data: updateArticleDto,
+    // });
   }
 
-  remove(id: number) {
-    return this.prisma.article.delete({ where: { id } });
+  async remove(id: number) {
+    return new ArticleEntity(
+      await this.prisma.article.delete({ where: { id } }),
+    );
+    // return this.prisma.article.delete({ where: { id } });
   }
 }

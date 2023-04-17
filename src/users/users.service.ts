@@ -30,12 +30,16 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.prisma.user.update({ where: { id }, data: updateUserDto });
+    const user = await this.prisma.user.update({
+      where: { id },
+      data: updateUserDto,
+    });
     return new UserEntity(user);
     // return this.prisma.user.update({ where: { id }, data: updateUserDto });
   }
 
-  remove(id: number) {
-    return this.prisma.user.delete({ where: { id } });
+  async remove(id: number) {
+    return new UserEntity(await this.prisma.user.delete({ where: { id } }));
+    // return this.prisma.user.delete({ where: { id } });
   }
 }
